@@ -67,7 +67,7 @@ enum class SecurityFix { OpenVpnSystemSettings, OpenBatterySettings, EnableStric
  */
 @Reusable
 class PortForwardingSecurityCheck @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val vpnStatusProviderUI: VpnStatusProviderUI,
     private val vpnStateMonitor: VpnStateMonitor,
     private val settingsForConnection: SettingsForConnection,

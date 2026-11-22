@@ -33,7 +33,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
 
       - name: Unit tests (port forwarding)
-        run: ./gradlew --no-daemon -Dorg.gradle.jvmargs="-Xmx5g -XX:MaxMetaspaceSize=1g" testProductionVanillaOpenSourceDebugUnitTest --tests 'com.protonvpn.app.portforwarding.*'
+        run: ./gradlew --no-daemon -Dorg.gradle.jvmargs="-Xmx5g -XX:MaxMetaspaceSize=1g" :app:testProductionVanillaOpenSourceDebugUnitTest --tests 'com.protonvpn.app.portforwarding.*'
 
       - name: Build debug APK
         run: ./gradlew --no-daemon -Dorg.gradle.jvmargs="-Xmx5g -XX:MaxMetaspaceSize=1g" assembleProductionVanillaOpenSourceDebug

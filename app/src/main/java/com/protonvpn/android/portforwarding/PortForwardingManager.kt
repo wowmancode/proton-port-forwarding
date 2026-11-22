@@ -97,7 +97,7 @@ sealed interface PortForwardingStatus {
  */
 @Singleton
 class PortForwardingManager @Inject constructor(
-    @ApplicationContext private val appContext: Context,
+    @param:ApplicationContext private val appContext: Context,
     private val mainScope: CoroutineScope,
     private val vpnStatusProviderUI: VpnStatusProviderUI,
     private val settingsForConnection: SettingsForConnection,
