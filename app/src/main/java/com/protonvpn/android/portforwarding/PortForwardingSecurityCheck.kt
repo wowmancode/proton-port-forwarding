@@ -25,6 +25,8 @@ import android.net.LinkProperties
 import android.os.Build
 import android.os.PowerManager
 import com.protonvpn.android.api.ProtonApiRetroFit
+import com.protonvpn.android.logging.LogCategory
+import com.protonvpn.android.logging.ProtonLogger
 import com.protonvpn.android.redesign.vpn.usecases.SettingsForConnection
 import com.protonvpn.android.settings.data.SplitTunnelingMode
 import com.protonvpn.android.utils.Constants
@@ -139,11 +141,35 @@ class PortForwardingSecurityCheck @Inject constructor(
             traffic("Exit server confirmed", CheckStatus.Warn, "The VPN server hasn't confirmed your exit IP yet. Try again in a minute.")
         }
 
-        val observed = withTimeoutOrNull(10_000) {
-            (api.getLocation() as? ApiResult.Success)?.value?.ipAddress
+        // Proton's app normally calls this endpoint only while disconnected, so through the tunnel it can be slow.
+        // Retry once with a longer timeout and keep the reason (never the IP) for the UI and logs.
+        var observed: String? = null
+        var failureReason: String? = null
+        for (attempt in 1..2) {
+            when (val result = withTimeoutOrNull(15_000) { api.getLocation() }) {
+                is ApiResult.Success -> {
+                    observed = result.value.ipAddress.takeIf { it.isNotBlank() }
+                    failureReason = if (observed == null) "empty response" else null
+                }
+                is ApiResult.Error.Http -> failureReason = "HTTP ${result.httpCode}"
+                is ApiResult.Error -> failureReason = result.javaClass.simpleName.ifBlank { "network error" }
+                null -> failureReason = "timed out"
+            }
+            if (observed != null) break
+        }
+        if (failureReason != null) {
+            ProtonLogger.logCustom(LogCategory.CONN, "Security check: public IP lookup failed ($failureReason)")
         }
         when {
-            observed == null -> traffic("Public IP check", CheckStatus.Warn, "Couldn't reach Proton to check your public IP.")
+            observed == null -> traffic(
+                "Public IP check",
+                // The server already confirmed the exit IP over its control channel, so a failed lookup is
+                // informational rather than a sign of a leak.
+                if (exitIp != null) CheckStatus.Info else CheckStatus.Warn,
+                "Couldn't ask Proton which IP it sees ($failureReason). " +
+                    if (exitIp != null) "This doesn't mean a leak: the VPN server already confirmed your exit IP above."
+                    else "Try again in a minute."
+            )
             exitIp != null && observed == exitIp ->
                 traffic("Public IP check", CheckStatus.Pass, "Proton sees your traffic coming from the VPN server's exit IP.")
             exitIp == null -> traffic("Public IP check", CheckStatus.Info, "Proton sees an IP, but it can't be matched against an exit IP yet.")
