@@ -1,0 +1,51 @@
+name: Port test
+
+# Run manually: Actions → Port test → Run workflow, then enter your VPN IP and forwarded port.
+# Tests from GitHub's servers whether the port accepts TCP connections. Keep the VPN connected and the
+# torrent app running during the test.
+on:
+  workflow_dispatch:
+    inputs:
+      ip:
+        description: 'VPN public IP (from the port test site or Proton)'
+        required: true
+      port:
+        description: 'Forwarded port shown in Proton → Settings → Port forwarding'
+        required: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate input
+        env:
+          IP: ${{ inputs.ip }}
+          PORT: ${{ inputs.port }}
+        run: |
+          [[ "$IP" =~ ^([0-9]{1,3}\.){3}[0-9]{1,3}$ ]] || { echo "::error::Not an IPv4 address"; exit 1; }
+          [[ "$PORT" =~ ^[0-9]{1,5}$ ]] && [ "$PORT" -ge 1024 ] && [ "$PORT" -le 65535 ] || { echo "::error::Port must be 1024-65535"; exit 1; }
+
+      - name: TCP connect test (5 attempts)
+        env:
+          IP: ${{ inputs.ip }}
+          PORT: ${{ inputs.port }}
+        run: |
+          open=0
+          for i in 1 2 3 4 5; do
+            if timeout 8 bash -c "exec 3<>/dev/tcp/$IP/$PORT" 2>/dev/null; then
+              echo "Attempt $i: OPEN (connection accepted)"; open=1; break
+            else
+              rc=$?
+              if [ $rc -eq 124 ]; then echo "Attempt $i: no answer (timeout = filtered/dropped)";
+              else echo "Attempt $i: refused or unreachable (exit $rc)"; fi
+            fi
+            sleep 3
+          done
+          if [ $open -eq 1 ]; then
+            echo "### ✅ $IP:$PORT is OPEN" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "### ❌ $IP:$PORT is CLOSED" >> "$GITHUB_STEP_SUMMARY"
+            echo "Timeout = Proton's firewall dropped it (server side). Refused = reached the server/phone but nothing accepted it." >> "$GITHUB_STEP_SUMMARY"
+            exit 1
+          fi

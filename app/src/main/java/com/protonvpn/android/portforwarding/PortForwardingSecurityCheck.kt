@@ -236,6 +236,18 @@ class PortForwardingSecurityCheck @Inject constructor(
             if (gatewayInTunnel) "Port requests go only to Proton's gateway, over the encrypted tunnel, never to your local network."
             else "The gateway isn't routed through the tunnel, so no port requests will be sent.")
 
+        val serverAck = PortForwardingServerAck.serverPortForwarding.value
+        val reportedCount = PortForwardingServerAck.lastReportedFeatureCount
+        pf("Server enabled port forwarding",
+            when (serverAck) { true -> CheckStatus.Pass; false -> CheckStatus.Fail; null -> CheckStatus.Warn },
+            when (serverAck) {
+                true -> "The VPN server confirmed port forwarding is on for this connection."
+                false -> "The VPN server reports port forwarding as OFF for this connection, so incoming connections are blocked. Reconnect to retry."
+                null -> if (reportedCount < 0) "The VPN server hasn't sent its feature status yet. Try again in a minute."
+                    else "The VPN server reported $reportedCount feature(s) but didn't include port forwarding, so it may not be applied."
+            },
+            SecurityFix.Reconnect.takeIf { serverAck == false })
+
         when (pfStatus) {
             is PortForwardingStatus.Active -> {
                 pf("Forwarded port", CheckStatus.Pass, "Port ${pfStatus.port} (TCP and UDP) is open on ${pfStatus.serverName}.")

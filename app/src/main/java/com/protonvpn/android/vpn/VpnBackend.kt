@@ -41,6 +41,7 @@ import com.protonvpn.android.logging.UserCertRevoked
 import com.protonvpn.android.models.config.TransmissionProtocol
 import com.protonvpn.android.models.config.VpnProtocol
 import com.protonvpn.android.models.vpn.ConnectionParams
+import com.protonvpn.android.portforwarding.PortForwardingServerAck
 import com.protonvpn.android.netshield.NetShieldStats
 import com.protonvpn.android.redesign.vpn.AnyConnectIntent
 import com.protonvpn.android.redesign.vpn.usecases.SettingsForConnection
@@ -211,6 +212,10 @@ abstract class VpnBackend(
         override fun onStatusUpdate(status: StatusMessage) {
             mainScope.launch {
                 if (isClosed) return@launch
+                status.features?.let { reported ->
+                    val pf = if (reported.hasKey(FEATURES_PORT_FORWARDING)) reported.getBool(FEATURES_PORT_FORWARDING) else null
+                    PortForwardingServerAck.update(pf, reported.count)
+                }
                 val stats = status.featuresStatistics?.toStats()
                 if (stats != null) {
                     netShieldStatsFlow.tryEmit(
@@ -296,6 +301,7 @@ abstract class VpnBackend(
     open suspend fun connect(connectionParams: ConnectionParams) {
         closeAgentConnection()
         lastConnectionParams = connectionParams
+        PortForwardingServerAck.reset()
     }
 
     suspend fun disconnect() {
