@@ -67,6 +67,7 @@ fun PortForwardingSettings(
     onClose: () -> Unit,
     state: PortForwardingViewModel.ViewState,
     onToggle: (Boolean) -> Unit,
+    onKeepAwakeToggle: (Boolean) -> Unit,
     onUpgrade: () -> Unit,
     onRunCheck: () -> Unit,
     onEnableStrictNat: () -> Unit,
@@ -87,6 +88,12 @@ fun PortForwardingSettings(
         )
 
         if (state.isEnabled && !state.isRestricted) {
+            SettingsToggleItem(
+                name = stringResource(R.string.settings_port_forwarding_keep_awake_title),
+                description = stringResource(R.string.settings_port_forwarding_keep_awake_description),
+                value = state.isKeepAwake,
+                onToggle = { onKeepAwakeToggle(!state.isKeepAwake) },
+            )
             StatusCard(state.status, onCopy = { port -> copyPort(context, port) })
             Text(
                 text = stringResource(R.string.settings_port_forwarding_how_to),

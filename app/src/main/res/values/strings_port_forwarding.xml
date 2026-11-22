@@ -3,6 +3,8 @@
 <resources>
     <string name="settings_port_forwarding_title" translatable="false">Port forwarding</string>
     <string name="settings_port_forwarding_description" translatable="false">Lets other peers connect to you on P2P (⇄) servers, so torrents find more peers and usually download and seed faster. Opens one random port on the VPN server, never on your router or phone network.</string>
+    <string name="settings_port_forwarding_keep_awake_title" translatable="false">Keep port open with screen off</string>
+    <string name="settings_port_forwarding_keep_awake_description" translatable="false">Keeps the phone\'s processor running in the background (the screen stays off) while a port is forwarded, so it doesn\'t expire or change during sleep. Uses some extra battery.</string>
     <string name="settings_port_forwarding_how_to" translatable="false">In your torrent app, set the listening port to the number above and turn off its UPnP/NAT-PMP. The port may change when you reconnect.</string>
     <string name="settings_port_forwarding_active_port" translatable="false">Forwarded port (TCP + UDP)</string>
     <string name="settings_port_forwarding_active_detail" translatable="false">Open on %1$s. Renewed automatically while connected.</string>

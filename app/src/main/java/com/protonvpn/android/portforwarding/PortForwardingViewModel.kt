@@ -49,6 +49,7 @@ class PortForwardingViewModel @Inject constructor(
         val isEnabled: Boolean,
         val isRestricted: Boolean,
         val isStrictNat: Boolean,
+        val isKeepAwake: Boolean,
         val status: PortForwardingStatus,
         val check: CheckState,
     )
@@ -65,6 +66,7 @@ class PortForwardingViewModel @Inject constructor(
             isEnabled = settings.portForwarding,
             isRestricted = vpnUser?.isUserPlusOrAbove != true,
             isStrictNat = settings.randomizedNat,
+            isKeepAwake = settings.portForwardingKeepAwake,
             status = status,
             check = check,
         )
@@ -75,6 +77,10 @@ class PortForwardingViewModel @Inject constructor(
             settingsManager.setPortForwardingEnabled(enabled)
             checkState.value = CheckState() // Old results no longer apply.
         }
+    }
+
+    fun setKeepAwake(value: Boolean) {
+        viewModelScope.launch { settingsManager.setPortForwardingKeepAwake(value) }
     }
 
     fun enableStrictNat() {

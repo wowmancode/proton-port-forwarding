@@ -24,12 +24,14 @@ import android.net.ConnectivityManager
 import android.net.Network
 import android.net.NetworkCapabilities
 import android.os.Build
+import android.os.PowerManager
 import android.os.Process
 import android.os.SystemClock
 import com.protonvpn.android.auth.usecase.CurrentUser
 import com.protonvpn.android.logging.LogCategory
 import com.protonvpn.android.logging.ProtonLogger
 import com.protonvpn.android.redesign.vpn.usecases.SettingsForConnection
+import com.protonvpn.android.settings.data.CurrentUserLocalSettingsManager
 import com.protonvpn.android.utils.Constants
 import com.protonvpn.android.vpn.VpnState
 import com.protonvpn.android.vpn.VpnStatusProviderUI
@@ -102,7 +104,21 @@ class PortForwardingManager @Inject constructor(
     private val vpnStatusProviderUI: VpnStatusProviderUI,
     private val settingsForConnection: SettingsForConnection,
     private val currentUser: CurrentUser,
+    private val settingsManager: CurrentUserLocalSettingsManager,
 ) {
+    /**
+     * Keeps the CPU (not the screen) running while a port is forwarded, so the 30 s renewals still happen when
+     * the phone is in deep sleep. Not reference counted and always acquired with a timeout, so it can never be
+     * held forever even if something goes wrong.
+     */
+    private val wakeLock: PowerManager.WakeLock? =
+        appContext.getSystemService(PowerManager::class.java)
+            ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "ProtonVPN:PortForwarding")
+            ?.apply { setReferenceCounted(false) }
+
+    @Volatile
+    private var keepAwake = true
+
     private val statusFlow =
         MutableStateFlow<PortForwardingStatus>(PortForwardingStatus.Inactive(PortForwardingInactiveReason.NotConnected))
     val status: StateFlow<PortForwardingStatus> = statusFlow.asStateFlow()
@@ -128,6 +144,10 @@ class PortForwardingManager @Inject constructor(
     fun start() {
         if (started) return
         started = true
+        mainScope.launch {
+            // Read separately so toggling it doesn't restart the session (which would release the port).
+            settingsManager.rawCurrentUserSettingsFlow.collect { keepAwake = it.portForwardingKeepAwake }
+        }
         mainScope.launch {
             combine(
                 vpnStatusProviderUI.uiStatus,
@@ -167,7 +187,16 @@ class PortForwardingManager @Inject constructor(
     }
 
     private suspend fun runSession(connectionId: String, serverName: String) = withContext(Dispatchers.IO) {
+        try {
+            runSessionLoop(connectionId, serverName)
+        } finally {
+            releaseWakeLock()
+        }
+    }
+
+    private suspend fun runSessionLoop(connectionId: String, serverName: String) = withContext(Dispatchers.IO) {
         statusFlow.value = PortForwardingStatus.Starting
+        holdCpuAwake()
         rejectedDatagramsFlow.value = 0
         var failures = 0
         var lastPort = 0
@@ -207,6 +236,7 @@ class PortForwardingManager @Inject constructor(
                                 serverName = serverName,
                                 connectionId = connectionId,
                             )
+                            holdCpuAwake()
                             delay(renewDelayMs(lifetime))
                         }
                     } catch (e: CancellationException) {
@@ -233,9 +263,24 @@ class PortForwardingManager @Inject constructor(
                 val retryS = (2 shl minOf(failures, 5)).coerceAtMost(MAX_BACKOFF_S) // 4, 8, 16, 32, 60...
                 log("NAT-PMP failed (${e.message}), retry in ${retryS}s")
                 statusFlow.value = PortForwardingStatus.Failed(e.message ?: e.javaClass.simpleName, retryS)
+                holdCpuAwake()
                 delay(retryS * 1000L)
             }
         }
+    }
+
+    /** (Re)acquires the CPU wake lock for a bit longer than the next renewal, or releases it if the user opted out. */
+    private fun holdCpuAwake() {
+        val lock = wakeLock ?: return
+        if (keepAwake) {
+            lock.acquire(WAKE_LOCK_TIMEOUT_MS)
+        } else if (lock.isHeld) {
+            lock.release()
+        }
+    }
+
+    private fun releaseWakeLock() {
+        wakeLock?.takeIf { it.isHeld }?.release()
     }
 
     /**
@@ -266,6 +311,8 @@ class PortForwardingManager @Inject constructor(
         const val REQUESTED_LIFETIME_S = 60L
         private const val INITIAL_DELAY_MS = 1_500L
         private const val MAX_BACKOFF_S = 60
+        /** Longer than the longest wait between renewals/retries (60 s) plus request time; auto-expires. */
+        private const val WAKE_LOCK_TIMEOUT_MS = 90_000L
 
         fun renewDelayMs(lifetimeS: Long): Long = (lifetimeS / 2).coerceIn(10, 45) * 1000L
     }

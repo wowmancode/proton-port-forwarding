@@ -322,6 +322,7 @@ fun SubSettingsRoute(
                         onClose = onClose,
                         state = pfState,
                         onToggle = pfViewModel::setEnabled,
+                        onKeepAwakeToggle = pfViewModel::setKeepAwake,
                         onUpgrade = {
                             upgradeDialogLauncher.launch(context, UpgradeSource.P2P, UpgradeTrigger.SETTINGS)
                         },
