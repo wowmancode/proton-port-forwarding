@@ -43,6 +43,7 @@ object SubSettingsScreen : Screen<SubSettingsScreen.Type, RootNav>("subSettingsS
         Lan,
         NatType,
         NetShield,
+        PortForwarding,
         Protocol,
         SplitTunneling,
         Theme,

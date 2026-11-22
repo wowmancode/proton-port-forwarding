@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Port forwarding (NAT-PMP) strings. English only for now; marked non-translatable to keep lint quiet. -->
+<resources>
+    <string name="settings_port_forwarding_title" translatable="false">Port forwarding</string>
+    <string name="settings_port_forwarding_description" translatable="false">Lets other peers connect to you on P2P (⇄) servers, so torrents find more peers and usually download and seed faster. Opens one random port on the VPN server, never on your router or phone network.</string>
+    <string name="settings_port_forwarding_how_to" translatable="false">In your torrent app, set the listening port to the number above and turn off its UPnP/NAT-PMP. The port may change when you reconnect.</string>
+    <string name="settings_port_forwarding_active_port" translatable="false">Forwarded port (TCP + UDP)</string>
+    <string name="settings_port_forwarding_active_detail" translatable="false">Open on %1$s. Renewed automatically while connected.</string>
+    <string name="settings_port_forwarding_copy" translatable="false">Copy</string>
+    <string name="settings_port_forwarding_copied" translatable="false">Port copied</string>
+    <string name="settings_port_forwarding_status_starting" translatable="false">Requesting a port from the VPN server…</string>
+    <string name="settings_port_forwarding_status_failed" translatable="false">Couldn\'t get a port. Retrying in %1$d s.</string>
+    <string name="settings_port_forwarding_status_not_connected" translatable="false">Connect to a P2P (⇄) server to get a port.</string>
+    <string name="settings_port_forwarding_status_not_p2p" translatable="false">This server doesn\'t support port forwarding. Connect to a P2P (⇄) server.</string>
+    <string name="settings_port_forwarding_status_moderate_nat" translatable="false">Port forwarding needs strict NAT. Change NAT type in Advanced settings.</string>
+    <string name="settings_port_forwarding_status_free" translatable="false">Port forwarding is available on paid plans.</string>
+    <string name="settings_port_forwarding_status_off" translatable="false">Off.</string>
+    <string name="settings_port_forwarding_security_heading" translatable="false">Security check</string>
+    <string name="settings_port_forwarding_security_description" translatable="false">Checks on this phone that your traffic goes through the VPN and that port forwarding is set up safely. Only Proton\'s servers are contacted.</string>
+    <string name="settings_port_forwarding_run_check" translatable="false">Check traffic and port forwarding</string>
+    <string name="settings_port_forwarding_check_summary_ok" translatable="false">Everything looks secure.</string>
+    <string name="settings_port_forwarding_check_summary_warn" translatable="false">%1$d thing(s) to review.</string>
+    <string name="settings_port_forwarding_check_summary_fail" translatable="false">%1$d problem(s) found.</string>
+    <string name="settings_port_forwarding_group_traffic" translatable="false">Traffic</string>
+    <string name="settings_port_forwarding_group_pf" translatable="false">Port forwarding</string>
+    <string name="settings_port_forwarding_fix_kill_switch" translatable="false">Open VPN settings</string>
+    <string name="settings_port_forwarding_fix_battery" translatable="false">Open battery settings</string>
+    <string name="settings_port_forwarding_fix_strict_nat" translatable="false">Switch to strict NAT</string>
+    <string name="settings_port_forwarding_fix_reconnect" translatable="false">Reconnect</string>
+</resources>

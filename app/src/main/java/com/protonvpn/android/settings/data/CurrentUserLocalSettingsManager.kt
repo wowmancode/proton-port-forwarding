@@ -133,6 +133,12 @@ class CurrentUserLocalSettingsManager @Inject constructor(
     suspend fun setRandomizedNat(value: Boolean) =
         update { current -> current.copy(randomizedNat = value) }
 
+    /** Port forwarding requires strict NAT, so enabling it also switches NAT type back to strict. */
+    suspend fun setPortForwardingEnabled(isEnabled: Boolean) = update { current ->
+        if (isEnabled) current.copy(portForwarding = true, randomizedNat = true)
+        else current.copy(portForwarding = false)
+    }
+
     suspend fun updateSplitTunnelSettings(transform: (SplitTunnelingSettings) -> (SplitTunnelingSettings)) =
         update { current -> current.copy(splitTunneling = transform(current.splitTunneling)) }
 

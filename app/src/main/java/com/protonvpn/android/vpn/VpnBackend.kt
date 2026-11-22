@@ -437,6 +437,12 @@ abstract class VpnBackend(
         setInt(FEATURES_NETSHIELD, settings.netShieldProtocol.ordinal.toLong())
         setBool(FEATURES_RANDOMIZED_NAT, settings.randomizedNat)
         setBool(FEATURES_SPLIT_TCP, settings.vpnAccelerator)
+        // Only ask the server to open a port on P2P servers with strict NAT; everywhere else it's explicitly off.
+        val server = lastConnectionParams?.server
+        setBool(
+            FEATURES_PORT_FORWARDING,
+            settings.portForwarding && settings.randomizedNat && server?.isP2pServer == true
+        )
 
         val bouncing = lastConnectionParams?.bouncing
         if (bouncing != null)
@@ -638,6 +644,7 @@ abstract class VpnBackend(
         private const val FEATURES_NETSHIELD = "netshield-level"
         private const val FEATURES_RANDOMIZED_NAT = "randomized-nat"
         private const val FEATURES_SPLIT_TCP = "split-tcp"
+        private const val FEATURES_PORT_FORWARDING = "port-forwarding" // Same key as the Windows app.
     }
 }
 
