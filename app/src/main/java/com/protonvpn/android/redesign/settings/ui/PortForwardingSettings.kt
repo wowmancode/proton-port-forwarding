@@ -59,6 +59,7 @@ import com.protonvpn.android.portforwarding.SecurityFix
 import com.protonvpn.android.redesign.base.ui.SettingsToggleItem
 import com.protonvpn.android.utils.openVpnSettings
 import me.proton.core.compose.theme.ProtonTheme
+import me.proton.core.compose.theme.captionWeak
 import me.proton.core.compose.theme.defaultSmallWeak
 
 @Composable
