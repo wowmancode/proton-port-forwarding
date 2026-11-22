@@ -1,0 +1,50 @@
+name: Build and test
+
+on:
+  push:
+    branches: [ master, 'feature/**' ]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /opt/ghc /usr/local/share/boost "$AGENT_TOOLSDIRECTORY" || true
+          df -h /
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Unit tests (port forwarding)
+        run: ./gradlew --no-daemon -Dorg.gradle.jvmargs="-Xmx5g -XX:MaxMetaspaceSize=1g" testProductionVanillaOpenSourceDebugUnitTest --tests 'com.protonvpn.app.portforwarding.*'
+
+      - name: Build debug APK
+        run: ./gradlew --no-daemon -Dorg.gradle.jvmargs="-Xmx5g -XX:MaxMetaspaceSize=1g" assembleProductionVanillaOpenSourceDebug
+
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: protonvpn-port-forwarding-debug-apk
+          path: app/build/outputs/apk/**/*.apk
+          if-no-files-found: error
+
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: test-reports
+          path: app/build/reports/tests/
+          if-no-files-found: ignore
