@@ -55,6 +55,7 @@ import com.protonvpn.android.base.ui.SimpleTopAppBar
 import com.protonvpn.android.base.ui.TopAppBarBackIcon
 import com.protonvpn.android.base.ui.collectAsEffect
 import com.protonvpn.android.base.ui.largeScreenContentPadding
+import com.protonvpn.android.portforwarding.PortForwardingViewModel
 import com.protonvpn.android.profiles.ui.nav.ProfileCreationStepTarget
 import com.protonvpn.android.redesign.app.ui.SettingsChangeViewModel
 import com.protonvpn.android.redesign.base.ui.InfoSheet
@@ -309,6 +310,25 @@ fun SubSettingsRoute(
                             settingsChangeViewModel.setNatType(newValue)
                             onClose()
                         },
+                    )
+                }
+            }
+
+            SubSettingsScreen.Type.PortForwarding -> {
+                val pfViewModel = hiltViewModel<PortForwardingViewModel>()
+                val pfState = pfViewModel.viewState.collectAsStateWithLifecycle().value
+                if (pfState != null) {
+                    PortForwardingSettings(
+                        onClose = onClose,
+                        state = pfState,
+                        onToggle = pfViewModel::setEnabled,
+                        onKeepAwakeToggle = pfViewModel::setKeepAwake,
+                        onUpgrade = {
+                            upgradeDialogLauncher.launch(context, UpgradeSource.P2P, UpgradeTrigger.SETTINGS)
+                        },
+                        onRunCheck = pfViewModel::runSecurityCheck,
+                        onEnableStrictNat = pfViewModel::enableStrictNat,
+                        onReconnect = { pfViewModel.reconnect(vpnUiDelegate) },
                     )
                 }
             }

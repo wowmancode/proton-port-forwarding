@@ -137,6 +137,9 @@ abstract class BaseApplyEffectiveUserSettings(
             splitTunneling = effectiveSplitTunneling,
             ipV6Enabled = settings.ipV6Enabled,
             protocol = settings.protocol.effectiveProtocol(flags.isProTunV1Enabled),
+            // Paid plans only, and never together with moderate NAT (unsupported by the server and would
+            // weaken NAT protection for all other ports).
+            portForwarding = isUserPlusOrAbove && settings.portForwarding && settings.randomizedNat,
         )
     }
 }

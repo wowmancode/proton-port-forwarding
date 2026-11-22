@@ -141,6 +141,7 @@ open class ProtonApplication : Application() {
         val paymentsHttpCapability: PaymentsHttpCapability
         val paymentStoreCapability: PaymentsStoreCapability
         val periodicUpdateManager: PeriodicUpdateManager
+        val portForwardingManager: com.protonvpn.android.portforwarding.PortForwardingManager
         val powerStateLogger: PowerStateLogger?
         val purchasesEnabledUpdater: PurchasesEnabledUpdater
         val quickTileDataStoreUpdater: QuickTileDataStoreUpdater
@@ -237,6 +238,7 @@ open class ProtonApplication : Application() {
         dependencies.logoutOnForceUpdate
         dependencies.maintenanceTracker
         dependencies.notificationPermissionManager
+        dependencies.portForwardingManager.start()
         dependencies.quickTileDataStoreUpdater.start()
         dependencies.populateInitialProfiles.start()
         dependencies.profileAutoOpenHandler.start()

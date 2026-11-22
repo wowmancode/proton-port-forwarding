@@ -180,6 +180,9 @@ fun SettingsRoute(
                 onAlwaysOnClick = {
                     onNavigateToSubSetting(SubSettingsScreen.Type.KillSwitch)
                 },
+                onPortForwardingClick = {
+                    onNavigateToSubSetting(SubSettingsScreen.Type.PortForwarding)
+                },
                 onProtocolClick = {
                     onOverrideSettingClick(OverrideType.Protocol) {
                         onNavigateToSubSetting(SubSettingsScreen.Type.Protocol)
@@ -259,6 +262,7 @@ fun SettingsView(
     onSplitTunnelClick: () -> Unit,
     onSplitTunnelUpgrade: () -> Unit,
     onAlwaysOnClick: () -> Unit,
+    onPortForwardingClick: () -> Unit,
     onConnectionPreferencesClick: () -> Unit,
     onProtocolClick: () -> Unit,
     onVpnAcceleratorClick: () -> Unit,
@@ -319,7 +323,8 @@ fun SettingsView(
                 onNetShieldUpgrade = onNetShieldUpgradeClick,
                 onSplitTunnelClick = onSplitTunnelClick,
                 onSplitTunnelUpgrade = onSplitTunnelUpgrade,
-                onAlwaysOnClick = onAlwaysOnClick
+                onAlwaysOnClick = onAlwaysOnClick,
+                onPortForwardingClick = onPortForwardingClick,
             )
             Category(
                 modifier = horizontalItemPadding,
@@ -480,6 +485,7 @@ private fun ColumnScope.FeatureCategory(
     onSplitTunnelClick: () -> Unit,
     onSplitTunnelUpgrade: () -> Unit,
     onAlwaysOnClick: () -> Unit,
+    onPortForwardingClick: () -> Unit,
 ) {
     Category(
         modifier = modifier.padding(start = 16.dp, end = 16.dp),
@@ -513,6 +519,11 @@ private fun ColumnScope.FeatureCategory(
                 onClick = onAlwaysOnClick
             )
         }
+        SettingRowWithIcon(
+            icon = CoreR.drawable.ic_proton_arrow_right_arrow_left,
+            title = stringResource(id = R.string.settings_port_forwarding_title),
+            onClick = onPortForwardingClick
+        )
     }
 }
 

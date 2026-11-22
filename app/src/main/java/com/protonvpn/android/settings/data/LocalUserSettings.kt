@@ -108,7 +108,11 @@ data class LocalUserSettings(
     val tvAutoConnectOnBoot: Boolean = false,
     val vpnAccelerator: Boolean = true,
     val ipV6Enabled: Boolean = true,
-    val customDns: CustomDnsSettings = CustomDnsSettings(false)
+    val customDns: CustomDnsSettings = CustomDnsSettings(false),
+    // Port forwarding (NAT-PMP) on P2P servers. Requires strict NAT (randomizedNat = true).
+    val portForwarding: Boolean = false,
+    // Keep the CPU awake (screen stays off) while a port is forwarded so renewals don't lapse in deep sleep.
+    val portForwardingKeepAwake: Boolean = true,
     // Whenever adding a new setting add it also in toLogList below.
 ) {
 
@@ -147,6 +151,8 @@ fun LocalUserSettings.toLogList(): List<String> {
         "IPv6 enabled: ${ipV6Enabled.toLog()}",
         "Custom DNS enabled: ${customDns.toggleEnabled.toLog()}",
         "Custom DNS list: ${customDns.rawDnsList.itemCountToLog()}",
+        "Port forwarding: ${portForwarding.toLog()}",
+        "Port forwarding keep awake: ${portForwardingKeepAwake.toLog()}",
         "UI theme: $theme",
         "TV auto connect on boot: ${tvAutoConnectOnBoot.toLog()}"
     )
